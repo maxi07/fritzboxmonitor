@@ -1,7 +1,7 @@
 ##!/usr/bin/env python
-# Python script to monitor the status of your PiHole and FritzBox
+# Python script to monitor the status of your FritzBox
 # Author: Maximilian Krause
-# Date 29.05.2021
+# Date 09.09.2021
 
 # Define Error Logging
 def printerror(ex):
@@ -16,7 +16,7 @@ if not os.geteuid() == 0:
 	printerror("Please run this script with sudo.")
 	exit(2)
 
-print("Welcome to network monitor for PiHole and FritzBox!")
+print("Welcome to network monitor for FritzBox!")
 print("Loading modules...")
 
 try:
