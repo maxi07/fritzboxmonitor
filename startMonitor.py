@@ -264,10 +264,11 @@ def readConfig():
 		fritzPass = ""
 		while not fritzPass:
 			fritzPass = input("Please enter your FritzBox password: ")
-		maxUpload = ""
+		transmissionrates = getTransmissionRates()
+		maxUpload = str(int(transmissionrates[0]/1000))
 		while not maxUpload or maxUpload.isnumeric == False:
 			maxUpload = input("Please enter your maximum upload in MBit/s (eg. 100): ")
-		maxDownload = ""
+		maxDownload = str(int(transmissionrates[1]/1000))
 		while not maxDownload or maxDownload.isnumeric == False:
 			maxDownload = input("Please enter your maximum download in MBit/s (eg. 50): ")
 
@@ -299,6 +300,14 @@ def findFritzBox():
 		printwarning("No FritzBox could be detected.")
 		return None
 
+# Reads the maximum transmission rates from your provider
+def getTransmissionRates():
+	fc = FritzStatus(password=fritzPass, user=fritzUser, address=fritzBoxIP)
+	tmr = fc.max_linked_bit_rate
+	print("Detected " + str(tmr[0]/1000) + " Mbit/s as maximum upload and " + str(tmr[1]/1000) + " Mbit/s as maximum download." )
+	return fc.max_linked_bit_rate
+
+
 # Check or internet connection
 def is_connected():
     try:
@@ -314,8 +323,13 @@ def wait():
 
 # Gets the transmission rate from the FritzBox
 def getTransmissionRate():
-	fc = FritzStatus(password=fritzPass, user=fritzUser)
-	return fc.str_transmission_rate
+	try:
+		fc = FritzStatus(password=fritzPass, user=fritzUser, address=fritzBoxIP)
+		return fc.str_transmission_rate
+	except Exception as e:
+		printerror("Failed detecting maximum up and downstream from FritzBox.")
+		printerror(str(e))
+		return None
 
 # Converts the FritzBox transmission rate to Mbit/s
 def convertToMbit(input):
@@ -353,6 +367,9 @@ def printHeader():
 	cpu_r = round(cpu.temperature, 2)
 	print("Current CPU:\t\t" + str(cpu_r) + "°C")
 	print("FritzBox IP:\t\t" + str(fritzBoxIP))
+	print("Max. upload:\t\t" + str(maxUpload) + " Mbit/s")
+	print("Max. download:\t\t" + str(maxDownload) + " Mbit/s")
+
 
 
 
@@ -423,8 +440,8 @@ if __name__ == '__main__':
 		
 		# Get Fritz Transmission Rate
 
-		print("Upload:\t\t\t" + str(currentUpload) + " MBit/s | " + str(currentUploadPercent) + " %")
-		print("Download:\t\t" + str(currentDownload) + " MBit/s | " + str(currentDownloadPercent) + " %")
+		print("Current upload:\t\t" + str(currentUpload) + " MBit/s | " + str(currentUploadPercent) + " %")
+		print("Current download:\t" + str(currentDownload) + " MBit/s | " + str(currentDownloadPercent) + " %")
 		progressUploadString = ""
 		progressDownloadString = ""
 		for x in range(0,currentUploadPercent, 10):
