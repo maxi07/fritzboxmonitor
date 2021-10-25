@@ -38,6 +38,8 @@ try:
 	import lcddriver
 	from urllib.request import urlopen
 	import socket
+	import csv
+	import os.path
 except ModuleNotFoundError:
 	printerror("The app could not be started.")
 	printerror("Please run 'sudo ./install.sh' first.")
@@ -60,6 +62,7 @@ fritzUser = None
 fritzPass = None
 maxUpload = None
 maxDownload = None
+csv_file = "log.csv"
 
 
 # Check for arguments
@@ -186,6 +189,29 @@ display.lcd_load_custom_chars(fontdata1)
 def detectFritzBox():
 	isup = True if os.system("ping -c 1 " + str(fritzBoxIP) + "> /dev/null") is 0 else False
 	return isup
+
+def getTimestamp() -> str:
+    ts = time.time()
+    st = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+    return st
+
+def logCSV(up: float, down: float):
+	try:
+		if os.path.isfile(csv_file):
+			fields = [getTimestamp(), up, down]
+			with open(csv_file, 'a') as f:
+				writer = csv.writer(f)
+				writer.writerow(fields)
+		else:
+		# Create first row of csv
+			fields=['datetime','down','up']
+			with open(csv_file, 'a') as f:
+				writer = csv.writer(f)
+				writer.writerow(fields)
+			print("Created new log file.")
+	except Exception as e:
+		printerror("Error writing csv: " + str(e))
+
 
 
 #Handles Ctrl+C
@@ -451,4 +477,5 @@ if __name__ == '__main__':
 		printLCD(progressUploadString.ljust(10, chr(2)) + chr(4) + " " + str(currentUploadPercent) + "%", 1)
 		printLCD(progressDownloadString.ljust(10, chr(2)) + chr(5) + " " +  str(currentDownloadPercent) + "%", 2)
 
+		logCSV(currentUpload, currentDownload)
 		wait()
